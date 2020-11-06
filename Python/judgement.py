@@ -5,8 +5,8 @@ import pandas as pd
 # load all py file
 def get_py_file(path):
     '''
-    :param path: unzipped upload folder path("X:/TA/kadai4/")
-    :return: py file list
+    :param path:->str :unzipped upload folder path("X:/TA/kadai4/")
+    :return:->list :py file list
     '''
     res = []
     lst = os.listdir(path)
@@ -20,9 +20,9 @@ def get_py_file(path):
 # get lists of input and output file path
 def load_test(path, problem):
     '''
-    :param path: year directory('X:/TA/2016/')
-    :param problem: problem number(A,B,C....)
-    :return:list of input case and test case
+    :param path: ->str: year directory('X:/TA/2016/')
+    :param problem: -> str: problem number(A,B,C....)
+    :return:->list: list of input case and test case
     '''
     inputFile = []
     testFile = []
@@ -32,11 +32,11 @@ def load_test(path, problem):
     return inputFile, testFile
 
 
-# get standard answer
+# get standard answer from file
 def get_ans(file):
     '''
-    :param file:file from inputFile
-    :return: result list
+    :param file: -> str: file from inputFile
+    :return: -> list: result list
     '''
     with open(file) as f:
         std_ans = f.read().strip().splitlines()
@@ -45,16 +45,16 @@ def get_ans(file):
     return std_ans
 
 
-# judge one py file
+# judge one py file (個別採点にも使える)
 def judge_one(file, std_in, std_out, std_ans):
     """
-    :param file: test target py file
-    :param std_in: inputFile path
-    :param std_out: outputFile path
-    :param std_ans: test case result list
-    :return: count:passed point
-            point: total point
-            res: score
+    :param file: -> str: test target py file
+    :param std_in: -> str: inputFile path
+    :param std_out: -> str: outputFile path
+    :param std_ans: ->list: test case result list
+    :return: count: -> int: passed point
+            point: -> int: total point
+            res: -> int: score
     """
     point = len(std_ans)
     # check if upload file is format correct
@@ -80,13 +80,13 @@ def judge_one(file, std_in, std_out, std_ans):
         res = 0
     return count, point, res
 
-
+# main function
 def judgement_death(kadai, path, year, problem):
     """
-    :param kadai: kadai(kadai4,kadai5...)
-    :param path: work space('X:/TA')
-    :param year: year(2015...)
-    :param problem: (A,B,C...)
+    :param kadai:->str kadai(kadai4,kadai5...)
+    :param path:->str work space('X:/TA')
+    :param year:->int year(2015...)
+    :param problem:->str (A,B,C...)
     :return: None
     """
     stu_path = path + 'stu_list.xlsx'
