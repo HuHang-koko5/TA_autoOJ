@@ -1,8 +1,10 @@
 import os
 import pandas as pd
+import subprocess
+
+from subprocess import TimeoutExpired
 
 
-# load all py file
 def get_py_file(path):
     '''
     :param path:->str :unzipped upload folder path("X:/TA/kadai4/")
@@ -12,8 +14,10 @@ def get_py_file(path):
     lst = os.listdir(path)
     for f in lst:
         fname = os.listdir(path + f)
-        file = fname[0]
-        res.append(path + f + '/' + file)
+        for file in fname:
+            if '2013' in file:
+                res.append(path + f + '/' + file)
+                print(file, ' loaded')
     return res
 
 
@@ -27,8 +31,8 @@ def load_test(path, problem):
     inputFile = []
     testFile = []
     for i in range(1, 5):
-        inputFile.append(path+problem+str(i))
-        testFile.append(path+problem+str(i)+'.ans')
+        inputFile.append(path + problem + str(i))
+        testFile.append(path + problem + str(i) + '.ans')
     return inputFile, testFile
 
 
@@ -58,27 +62,38 @@ def judge_one(file, std_in, std_out, std_ans):
     """
     point = len(std_ans)
     # check if upload file is format correct
-    if os.path.isfile(file) and file.endswith('.py'):
-        os.system("{} < {} > {}".format(file, std_in, std_out))
-        with open(std_out, 'r') as f:
-            stu_ans = f.read().strip().splitlines()
-        f.close()
+    if os.path.isfile(file) and file.endswith('2013.py'):
+        try:
+            subprocess.call("python " + file, stdin=open(std_in, 'r'),
+                            stdout=open(std_out, 'w'), timeout=5)
+        except TimeoutExpired:
+            print('Time out')
+            pass
+        stu_ans = []
+        try:
+            with open(std_out, 'r') as f:
+                stu_ans = f.read().strip().splitlines()
+            f.close()
+        except:
+            pass
         count = 0
         point = len(std_ans)
         for i, j in zip(std_ans, stu_ans):
             if i == j:
                 count += 1
-        # print('{} of {} point passed'.format(count, point))
+        print('{} of {} point passed'.format(count, point))
     else:
+        print('wrong file')
         print(os.path.isfile(file))
         count = -1
-    if count==point:
+    if count == point:
         res = 2
-    elif count>point * 0.8:
+    elif count > point * 0.8:
         res = 1
     else:
         res = 0
     return count, point, res
+
 
 # main function
 def judgement_death(kadai, path, year, problem):
@@ -90,9 +105,11 @@ def judgement_death(kadai, path, year, problem):
     :return: None
     """
     stu_path = path + 'stu_list.xlsx'
-    result_path = path + 'result/{}.xls'.format(kadai)
-    output_path = path + 'result/'
-    upload_path = path + kadai+'/'
+    result_path = path + 'result/' + year + '{}.xls'.format(kadai)
+    output_path = path + 'result/' + year + '/'
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    upload_path = path + kadai + '/'
     frame = pd.read_excel(stu_path)
     stu_list = list(frame.iloc[:, 0])
     lst = os.listdir(upload_path)
@@ -103,23 +120,25 @@ def judgement_death(kadai, path, year, problem):
         upload_list.append(f)
     py_list = get_py_file(upload_path)
     dic = {}
-    input_files, answers = load_test(path+str(year)+'/', problem)
+    input_files, answers = load_test(path + str(year) + '/', problem)
     for stu, py in zip(upload_list, py_list):
         score = 0
+        print()
         print('-----------------------------------------------------')
         print("student {}:".format(stu))
         if not os.path.exists(output_path + stu + '/'):
             os.mkdir(output_path + stu + '/')
         for case, iF, ans in zip(range(len(input_files)), input_files, answers):
+            print('case {}: '.format(case))
             std_out = output_path + stu + '/' + str(case) + '.txt'
             ans = get_ans(ans)
             count, point, res = judge_one(py, iF, std_out, ans)
             if res == 2:
-                print('case {}: pass'.format(case))
+                print('pass'.format(case))
             elif res == 1:
-                print('case {}: error'.format(case))
+                print('error'.format(case))
             else:
-                print('case {}: failed'.format(case))
+                print('failed'.format(case))
             # print("{} passed {} of {} in case {} score ={}".format(stu,count,point,case, res))
             score += res
         dic[stu] = score
@@ -128,8 +147,8 @@ def judgement_death(kadai, path, year, problem):
     score = []
     for idx in stu_list:
         score.append(dic[idx] if idx in dic else 'not uploaded')
-    df = pd.DataFrame({'ID':stu_list, 'result score':score})
+    df = pd.DataFrame({'ID': stu_list, 'result score': score})
     df.to_excel(result_path)
 
 
-judgement_death('kadai4', 'X:/TA/', '2016', 'A')
+judgement_death('kadai6', 'G:/TA/', '2013', 'A')
